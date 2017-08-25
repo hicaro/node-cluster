@@ -18,17 +18,15 @@ if (cluster.isMaster) {
         cluster.fork();
     }
 
-    var updateWorkers = function () {
-        var usersCount = numberOfUsersInDB();
+    cluster.on("exit", function (worker, code, signal) {
+        // make sure it was not manually disconnected or killed by the master process itself
+        if (code !== 0 && !worker.exitedAfterDisconnect) {
+            console.log("Worker", worker.id, "crashed. Starting a new worker...");
 
-        Object.values(cluster.workers).forEach(function (worker) {
-            worker.send({'usersCount': usersCount});
-        });
-    };
-
-    updateWorkers();
-    setInterval(updateWorkers, 10000);
-    
+            cluster.fork();
+        }
+    });
+   
 } else {
     require('./server');
 }

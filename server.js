@@ -3,17 +3,15 @@
 var http    = require('http');
 var pid     = process.pid;
 
-var usersCount;
-
 http.createServer(function  (request, response) {
     for(var i = 0; i < 1e7; i++);
 
-    response.write("Handled by process " + pid);
-    response.end("Users: " + usersCount);
+    response.end("Handled by process " + pid);
 }).listen(8080, function (){
     console.log("Started process", pid)
 });
 
-process.on("message", function (msg) {
-    usersCount = msg.usersCount;
-});
+
+setTimeout(function () {
+    process.exit(1); // death by random timeout
+}, Math.random() * 10000);
