@@ -1,15 +1,14 @@
-// cluster.js
+/*
+    Credits to Samer Buna
+    Link to his article: https://medium.freecodecamp.org/scaling-node-js-applications-8492bd8afadc
+*/
 
 var cluster = require('cluster');
 var os      = require('os');
 
-var numberOfUsersInDB = function() {
-    this.count = this.count || 5;
-    this.count = this.count * this.count;
-    return this.count;
-}
-
 if (cluster.isMaster) {
+    console.log('Master PID:', process.pid);
+
     var cpus = os.cpus().length;
 
     console.log("Forking for", cpus, "CPUs");
@@ -25,6 +24,28 @@ if (cluster.isMaster) {
 
             cluster.fork();
         }
+    });
+
+    var restartWorker = function (workers, index) {
+        if (index < workers.length) {
+            var worker = workers[index];
+            worker.on("exit", function () {
+                if (!worker.exitedAfterDisconnect) return;
+
+                console.log("Exited process", worker.process.pid);
+
+                cluster.fork().on("listening", function() {
+                    restartWorker(workers, index + 1);
+                });
+            });
+
+            worker.disconnect();
+        }
+    };
+
+    process.on('SIGUSR2', function () {
+        var workers = Object.values(cluster.workers);
+        restartWorker(workers, 0);
     });
    
 } else {

@@ -1,4 +1,7 @@
-// server.js
+/*
+    Credits to Samer Buna
+    Link to his article: https://medium.freecodecamp.org/scaling-node-js-applications-8492bd8afadc
+*/
 
 var http    = require('http');
 var pid     = process.pid;
@@ -10,8 +13,3 @@ http.createServer(function  (request, response) {
 }).listen(8080, function (){
     console.log("Started process", pid)
 });
-
-
-setTimeout(function () {
-    process.exit(1); // death by random timeout
-}, Math.random() * 10000);
